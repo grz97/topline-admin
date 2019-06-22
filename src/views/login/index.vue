@@ -1,16 +1,88 @@
 <template>
-  <div>
-    <p>Login Component</p>
+  <div class="login-wrap">
+    <div class="login-form-wrap">
+      <div class="login-head">
+          <img src="./logo_index.png" alt="黑马头条">
+      </div>
+      <div class="login-form">
+        <el-form ref="form" :model="form">
+          <el-form-item>
+            <el-input v-model="form.mobile" placeholder="手机号"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <!-- 支持栅格布局 一共是24列-->
+            <el-col :span="10">
+              <el-input v-model="form.code" placeholder="验证码"></el-input>
+            </el-col>
+            <el-col :span="10" :offset="2">
+              <el-button @click="handleSendCode">获取验证码</el-button>
+            </el-col>
+          </el-form-item>
+          <el-form-item>
+              <!--给组件加class 会作用到它的根元素-->
+            <el-button class="btn-login" type="primary" @click="onSubmit">登录</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
   </div>
 </template>
 <script>
+import axios from 'axios'
 export default {
   name: 'AppLogin',
-  data () {
-    return {}
+  data() {
+    return {
+      form: {
+        mobile: '18734800169',
+        code: ''
+      }
+    }
+  },
+  methods: {
+    onSubmit() {
+      console.log('submit!')
+    },
+    handleSendCode() {
+        const { mobile } = this.form
+      axios({
+          method:'GET',
+          url:`http://ttapi.research.itcast.cn/mp/v1_0/captchas/${mobile}`
+      }).then(res => {
+        console.log(res.data)
+      })
+    }
   }
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="less" scoped>
+.login-wrap {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+//   background-color: skyblue;
+background-image: url(login_bg.jpg);
+background-repeat:no-repeat;
+background-position: center top;
+background-size:100% 100%;
+overflow: hidden;
+.login-head{
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+    img{
+        width: 250px;
+    }
+}
+}
+.login-form-wrap{
+    background-color:#fff;
+    padding: 50px;
+    border-radius: 50px;
+    .btn-login{
+        width: 100%;
+    }
+}
 </style>
