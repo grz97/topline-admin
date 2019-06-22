@@ -29,6 +29,7 @@
 </template>
 <script>
 import axios from 'axios'
+import '@/vendor/gt' // git.js会向全局window 暴露一个函数 initGeetest
 export default {
   name: 'AppLogin',
   data() {
