@@ -18,7 +18,10 @@ module.exports = {
       'quotes': ['off'],
       "semi": ["off"],
       'key-spacing': ['off'],
-      'indent':['off']
+      'indent':['off'],
+      'camelcase': ['off'],
+      'comma-spacing': ['off'],
+      'space-infix-ops':['off']
   },
   parserOptions: {
     parser: 'babel-eslint'
