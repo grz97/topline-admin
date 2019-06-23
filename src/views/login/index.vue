@@ -21,8 +21,13 @@
               <el-input v-model="form.code" placeholder="验证码"></el-input>
             </el-col>
             <el-col :span="10" :offset="2">
-              <el-button @click="handleSendCode">获取验证码</el-button>
-              <!-- <el-button v-show="!show" class="count">{{count}}s</el-button> -->
+              <!-- <el-button @click="handleSendCode">获取验证码</el-button> -->
+              <!-- <el-button @click="handleSendCode">获取验证码</el-button> -->
+              <el-button
+              @click="handleSendCode"
+              :disabled="!!codeTimer"
+              > {{ codeTimer ? `剩余${codeSecons}秒` : '获取验证码' }}
+              </el-button>
             </el-col>
           </el-form-item>
           <el-form-item prop="agree">
@@ -50,6 +55,7 @@
 <script>
 import axios from "axios";
 import "@/vendor/gt"; // git.js会向全局window 暴露一个函数 initGeetest
+const initCodeSeconds = 60
 export default {
   name: "AppLogin",
   data() {
@@ -80,7 +86,9 @@ export default {
           { pattern: /true/, message: "请同意用户协议", trigger: "change" }
         ]
       },
-      captchaObj: null // 通过initGeetest得到的级验验证码对象
+      captchaObj: null, // 通过initGeetest得到的级验验证码对象
+      codeSecons : initCodeSeconds, // 倒计时的时间
+      codeTimer: null // 倒计时定时器
     };
   },
   methods: {
@@ -122,10 +130,12 @@ export default {
         });
     },
     handleSendCode() {
+        // 验证手机号是否有效
       this.$refs["ruleForm"].validateField("mobile", errorMessage => {
         if (errorMessage.trim().length > 0) {
           return;
         }
+        // 手机号码有效，初始化验证码插件
         this.showGeetest();
       });
     },
@@ -154,11 +164,11 @@ export default {
             this.captchaObj = captchaObj;
             // 这里可以调用验证实例 captchaObj 的实例方法
             captchaObj
-              .onReady(function() {
+              .onReady(() => {
                 // 只有ready了才能显示验证码
                 captchaObj.verify();
               })
-              .onSuccess(function() {
+              .onSuccess(() => {
                 const {
                   geetest_challenge: challenge,
                   geetest_seccode: seccode,
@@ -173,29 +183,27 @@ export default {
                     seccode
                   }
                 }).then(res => {
-                  // 开启倒计时效果
-                  // const time_count = 60;
-                  // if (!this.timer) {
-                  //     this.count = time_count
-                  //     this.show = false
-                  //     this.timer = setInterval(() => {
-                  //         if (this.count > 0 && this.count <=time_count) {
-                  //             this.count--;
-                  //         } else {
-                  //             this.show = true
-                  //             clearInterval(this.timer)
-                  //             this.timer = null
-                  //         }
-                  //     } , 1000)
-                  // }
+                 // 发送短信之后，开始倒计时
+                 this.codeCountDown()
                 });
               });
           }
-        );
-      });
+        )
+      })
+    },
+     codeCountDown() {
+      this.codeTimer = window.setInterval(() => {
+        this.codeSecons--
+        if (this.codeSecons <= 0) {
+          this.codeSecons = initCodeSeconds // 让倒计时时间回到初始状态
+          window.clearInterval(this.codeTimer) // 清除倒计时
+          this.codeTimer = null // 清除倒计时定时器的标志
+        }
+      }, 1000)
+    }
     }
   }
-};
+
 </script>
 
 <style lang="less" scoped>
