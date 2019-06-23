@@ -24,10 +24,9 @@
               <!-- <el-button @click="handleSendCode">获取验证码</el-button> -->
               <!-- <el-button @click="handleSendCode">获取验证码</el-button> -->
               <el-button
-              @click="handleSendCode"
-              :disabled="!!codeTimer"
-              > {{ codeTimer ? `剩余${codeSecons}秒` : '获取验证码' }}
-              </el-button>
+                @click="handleSendCode"
+                :disabled="!!codeTimer"
+              >{{ codeTimer ? `剩余${codeSecons}秒` : '获取验证码' }}</el-button>
             </el-col>
           </el-form-item>
           <el-form-item prop="agree">
@@ -55,7 +54,7 @@
 <script>
 import axios from "axios";
 import "@/vendor/gt"; // git.js会向全局window 暴露一个函数 initGeetest
-const initCodeSeconds = 60
+const initCodeSeconds = 60;
 export default {
   name: "AppLogin",
   data() {
@@ -87,8 +86,9 @@ export default {
         ]
       },
       captchaObj: null, // 通过initGeetest得到的级验验证码对象
-      codeSecons : initCodeSeconds, // 倒计时的时间
-      codeTimer: null // 倒计时定时器
+      codeSecons: initCodeSeconds, // 倒计时的时间
+      codeTimer: null, // 倒计时定时器
+      sendMobile: "" // 保存初始化验证码之后发送短信的手机号
     };
   },
   methods: {
@@ -130,17 +130,36 @@ export default {
         });
     },
     handleSendCode() {
-        // 验证手机号是否有效
+      // 验证手机号是否有效
       this.$refs["ruleForm"].validateField("mobile", errorMessage => {
         if (errorMessage.trim().length > 0) {
           return;
         }
-        // 手机号码有效，初始化验证码插件
-        this.showGeetest();
+        // 手机号码验证通过
+        // 验证是否有验证码插件对象
+        if (this.captchaObj) {
+          // 手机号码有效，初始化验证码插件
+          // this.showGeetest()
+          // 如果用户输入的手机号和之前初始化的验证码手机号不一致，就基于当前手机号码重新初始化
+          // 否则，直接 verify 显示
+          if (this.form.mobile !== this.sendMobile) {
+            // 手机号码发送改变，重新初始化验证码插件
+            // 重新初始化之前，将原来的验证码插件 DOM 删除
+            document.body.removeChild(document.querySelector(".geetest_panel"));
+            // 重新初始化
+            this.showGeetest();
+          } else {
+            // 一致，直接 verify
+            this.captchaObj.verify();
+          }
+        } else {
+          // 这里是第1次的初始化验证码插件
+          this.showGeetest();
+        }
       });
     },
     showGeetest() {
-      const { mobile } = this.form;
+      // const { mobile } = this.form;
       // 如果已经初始化了，就直接verify
       if (this.captchaObj) {
         //
@@ -148,7 +167,9 @@ export default {
       }
       axios({
         method: "GET",
-        url: `http://ttapi.research.itcast.cn/mp/v1_0/captchas/${mobile}`
+        url: `http://ttapi.research.itcast.cn/mp/v1_0/captchas/${
+          this.form.mobile
+        }`
       }).then(res => {
         const data = res.data.data;
         window.initGeetest(
@@ -166,6 +187,7 @@ export default {
             captchaObj
               .onReady(() => {
                 // 只有ready了才能显示验证码
+                this.sendMobile = this.form.mobile;
                 captchaObj.verify();
               })
               .onSuccess(() => {
@@ -174,36 +196,39 @@ export default {
                   geetest_seccode: seccode,
                   geetest_validate: validate
                 } = captchaObj.getValidate();
+                // 调用 获取短信验证码接口（级验 API2）接口 发送短信
                 axios({
                   method: "GET",
-                  url: `http://ttapi.research.itcast.cn/mp/v1_0/sms/codes/${mobile}`,
+                  url: `http://ttapi.research.itcast.cn/mp/v1_0/sms/codes/${
+                    this.form.mobile
+                  }`,
                   params: {
+                    // 专门用来传递 query 查询字符串参数
                     challenge,
                     validate,
                     seccode
                   }
                 }).then(res => {
-                 // 发送短信之后，开始倒计时
-                 this.codeCountDown()
+                  // 发送短信之后，开始倒计时
+                  this.codeCountDown();
                 });
               });
           }
-        )
-      })
+        );
+      });
     },
-     codeCountDown() {
+    codeCountDown() {
       this.codeTimer = window.setInterval(() => {
-        this.codeSecons--
+        this.codeSecons--;
         if (this.codeSecons <= 0) {
-          this.codeSecons = initCodeSeconds // 让倒计时时间回到初始状态
-          window.clearInterval(this.codeTimer) // 清除倒计时
-          this.codeTimer = null // 清除倒计时定时器的标志
+          this.codeSecons = initCodeSeconds; // 让倒计时时间回到初始状态
+          window.clearInterval(this.codeTimer); // 清除倒计时
+          this.codeTimer = null; // 清除倒计时定时器的标志
         }
-      }, 1000)
-    }
+      }, 1000);
     }
   }
-
+};
 </script>
 
 <style lang="less" scoped>
