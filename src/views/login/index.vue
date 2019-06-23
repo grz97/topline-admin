@@ -5,11 +5,17 @@
         <img src="./logo_index.png" alt="黑马头条">
       </div>
       <div class="login-form">
-        <el-form ref="form" :model="form">
-          <el-form-item>
+      <!--
+          表单验证：
+          rules: 配置验证规则
+          将需要验证的字段通过 prop 属性配置到el-form-item组件上
+          ref: 获取表单组件 可以手动调用表单组件的验证方法
+      -->
+        <el-form ref="ruleForm" :model="form" :rules="rules">
+          <el-form-item prop="mobile">
             <el-input v-model="form.mobile" placeholder="手机号"></el-input>
           </el-form-item>
-          <el-form-item>
+          <el-form-item prop="code">
             <!-- 支持栅格布局 一共是24列-->
             <el-col :span="10">
               <el-input v-model="form.code" placeholder="验证码"></el-input>
@@ -21,7 +27,12 @@
           </el-form-item>
           <el-form-item>
             <!--给组件加class 会作用到它的根元素-->
-            <el-button class="btn-login" type="primary" @click="handLogin">登录</el-button>
+            <el-button
+             class="btn-login"
+             type="primary"
+             @click="handLogin"
+             :loading="loginLoading"
+             >登录</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -38,16 +49,37 @@ export default {
     //   show:'true',
     //   count:'',
     //   timer:null,
-      form: {
+      form: { // 表单数据
         mobile: '18734800169',
         code: ''
       },
+      loginLoading: false, // 登录按钮的loading 状态
+      rules: { // 表单验证规则
+        mobile: [
+            { required: true, message: '请输入手机号', trigger: 'blur' },
+            { min: 11, max: 11, message: '长度为11个字符', trigger: 'blur' }
+        ],
+        code: [
+           { required: true, message: '请输入验证码', trigger: 'blur' },
+           { min: 6, max: 6, message: '长度为6个字符', trigger: 'blur' }
+        ]
+      },
        captchaObj:null // 通过initGeetest得到的级验验证码对象
-    }
-  },
+      }
+   },
   methods: {
     handLogin() {
-      axios({
+        //  表单组件有一个方法 validatae 可以用来获取当前表单的验证状态
+        this.$refs['ruleForm'].validate(valid => {
+        if (!valid) {
+          return
+        }
+        this.submitLogin()
+      })
+    },
+    submitLogin() {
+        this.loginLoading = true
+        axios({
         method:'POST',
         url:'http://ttapi.research.itcast.cn/mp/v1_0/authorizations',
         data:this.form
@@ -57,6 +89,7 @@ export default {
           message: '登录成功',
           type: 'success'
         })
+        this.loginLoading = false
         // 跳转到路由首页 建议使用name跳转 路由传参非常方便
         this.$router.push({
           name: 'home'
@@ -67,6 +100,7 @@ export default {
         if (err.response.status === 400) {
            this.$message.error('登录失败 手机号或验证码错误') // 小于等于400的http状态码都会进入这里
         }
+        this.loginLoading = false
       })
     },
     handleSendCode() {
