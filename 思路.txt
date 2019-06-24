@@ -1,0 +1,44 @@
+第一天 建立文件夹
+src文件夹中
+   1.main.js 需要加载的包：载入vue包、router、Element UI (Vue.use（）)
+           需要加载的组件：引入APP.vue根组件
+           需要加载的样式： element ui.css样式 自定义的样式(公共样式放在style文件夹中style.less中)
+           将router挂载到vue实例中
+   2.router文件 router.js 
+           需要载入的包：vue、vue-router(Vue.use())
+           实例化vue-router 
+                  配置路由表routes 分别配置主页home和登录页login
+                  在App.vue根组件中router-view
+                  导出export default
+第二天 登陆功能
+路由文件写在view文件夹中
+   1.home文件 主页
+      index.vue 
+   2.login文件 登陆页
+      index.vue logo图片 登陆页的背景图片
+      需要加载的包：axios
+      需要加载的文件：gt.js 它用于加载对应的验证JS库
+      过程：
+       1.表单验证 验证通过之后====发送axios请求，目的是为了登陆,请求的参数是手机号和验证码，验证码从哪里来？
+       2.验证码请求
+         a：点击发送验证码按钮，发送axios请求，目的：获取用来初始化验证的参数
+         b: 加载gt.js文件 login文件夹引入,直接引入，不需要接收值
+         c：处理问题，因为gt.js不符合ESlint规范，所以要建立一个.edlintignore文件，内容是src/vendor/gt.js
+         d: gt.js 会提供一个全局函数 initGeetest 在第一步发送axios请求之后，将得到的数据在window.initGeetest里面配置参数
+         e：调用验证实例 captchaObj 的实例方法 captchaObj.onready 验证码ready之后才能调用verify方法显示验证码
+         f：window.initGeetest需要两个参数：第一个是axios返回来的配置参数，第二个参数是调用验证实例 captchaObj 的实例
+         g：【验证码显示的地方】第二个参数需要onready（）验证之后显示出来验证码
+         h：这里会出现两种结果，一种是成功或者失败
+       3. 验证成功后，在onSuccess的函数中，captchaObj.getValidate(),将这个里面的参数处理作为第二次发送axios请求的参数
+       4. 第二次发送axios请求，参数就是上面的参数，目的是为了得到手机验证码
+       5. 登陆功能 连接第一步的如果表单验证成功的话，就登陆,登陆的参数就是手机号和验证码
+       6. 成功的话就this.$message({message:'登陆成功',type='success'})，跳转到首页
+       7. 将失败的结果写在catch中
+       问题一：验证码重复发送请求得到不同的验证
+       方法：在第一次发送axios请求之前，就判断有没有显示出来验证码，如果显示出来了就返回并将验证码显示出来
+       问题二：网络延迟的话，让按钮处于加载中的状态
+       方法： 给按钮设置自定义属性loading，默认为false，当表单验证通过之后，将状态改为true，一直到登陆成功或者失败后都将状态改为false
+       然后这里就结束啦~~~
+       还需要考虑的问题：等待验证码的过程中或者没有点击登陆按钮的过程中需要倒计时
+                  
+               

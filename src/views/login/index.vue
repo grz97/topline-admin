@@ -52,7 +52,7 @@
   </div>
 </template>
 <script>
-import axios from "axios";
+// import axios from "axios";
 import "@/vendor/gt"; // git.js会向全局window 暴露一个函数 initGeetest
 const initCodeSeconds = 60;
 export default {
@@ -64,7 +64,7 @@ export default {
       //   timer:null,
       form: {
         // 表单数据
-        mobile: "18734800169",
+        mobile: "",
         code: "",
         agree: "" // 是否同意用户协议
       },
@@ -105,12 +105,15 @@ export default {
     submitLogin() {
       // 登录
       this.loginLoading = true; // 登录加载
-      axios({
+      this.$http({
         method: "POST",
-        url: "http://ttapi.research.itcast.cn/mp/v1_0/authorizations",
+        url: "/authorizations",
         data: this.form // form表单
       })
         .then(res => {
+          // 登录成功 将接口返回的用户信息数据放到本地存储
+          // window.localStorage.setItem('user_info',JSON.stringify(res.data.data))
+          window.localStorage.setItem('user_info', JSON.stringify(res.data.data))
           // Element 提供的提示文本信息组件 这也是组件使用的一种方式  大于等于200或者小于400的状态码都会进入这里
           this.$message({
             message: "登录成功",
@@ -168,9 +171,9 @@ export default {
       // }
       // 初始化验证码期间，禁用按钮的点击状态
       this.codeLoading = true
-      axios({
+      this.$http({
         method: "GET",
-        url: `http://ttapi.research.itcast.cn/mp/v1_0/captchas/${
+        url: `/captchas/${
           this.form.mobile
         }`
       }).then(res => {
@@ -202,9 +205,9 @@ export default {
                   geetest_validate: validate
                 } = captchaObj.getValidate();
                 // 调用 获取短信验证码接口（级验 API2）接口 发送短信
-                axios({
+                this.$http({
                   method: "GET",
-                  url: `http://ttapi.research.itcast.cn/mp/v1_0/sms/codes/${
+                  url: `/sms/codes/${
                     this.form.mobile
                   }`,
                   params: {
