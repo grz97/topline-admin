@@ -59,8 +59,9 @@
 </template>
 
 <script>
+const userInfo = JSON.parse(window.localStorage.getItem('user_info'));
 export default {
-  name: "Articelist",
+  name: "Articlelist",
   data() {
     return {
       tableData: [
@@ -98,6 +99,18 @@ export default {
       }
     };
   },
+  created() {
+    this.$http({
+      method: 'GET',
+      url: '/articles',
+      headers: {
+        // 自动义发送请求头
+        Authorization: `Bearer ${userInfo.token}` // 注意：Bearer 和 token 之间要有空格
+      }
+    }).then(res => {
+      console.log(res);
+    });
+  },
   methods: {
     onSubmit() {
       console.log("submit!");
@@ -107,10 +120,10 @@ export default {
 </script>
 
 <style lang="less" scoped>
-.filter-card{
-  margin-bottom:  20px;
+.filter-card {
+  margin-bottom: 20px;
 }
-.list-table{
+.list-table {
   margin-bottom: 30px;
 }
 </style>

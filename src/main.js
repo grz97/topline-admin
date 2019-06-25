@@ -23,22 +23,22 @@ axios.defaults.baseURL = 'http://ttapi.research.itcast.cn/mp/v1_0/'
  *  config 是本次请求相关的配置对象
  * return config 就是允许通过的方式
  *  */
-axios.interceptors.request.use(config => {
-  const userInfo = JSON.parse(window.localStorage.getItem('user_info'))
-  config.headers.Authorization = `Bearer ${userInfo.token}`
-  return config
-}, error => {
-  return Promise.reject(error)
-})
+// axios.interceptors.request.use(config => {
+//   const userInfo = JSON.parse(window.localStorage.getItem('user_info'))
+//   config.headers.Authorization = `Bearer ${userInfo.token}`
+//   return config
+// }, error => {
+//   return Promise.reject(error)
+// })
 
-/**
- * Axios 响应拦截器
- */
-axios.interceptors.response.use(response => {
-  return response
-}, error => {
-  return Promise.reject(error);
-});
+// /**
+//  * Axios 响应拦截器
+//  */
+// axios.interceptors.response.use(response => {
+//   return response
+// }, error => {
+//   return Promise.reject(error);
+// });
 
 // 几乎每个组件都要使用axios 去发请求 频繁的 import 就变得非常麻烦
 //  我们可以将一些频繁使用的成员放到Vue.prototype 中 然后就可以在 组件中 this.xxx使用了
