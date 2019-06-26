@@ -110,10 +110,10 @@ export default {
         url: "/authorizations",
         data: this.form // form表单
       })
-        .then(res => {
+        .then(data => {
           // 登录成功 将接口返回的用户信息数据放到本地存储
           // window.localStorage.setItem('user_info',JSON.stringify(res.data.data))
-          window.localStorage.setItem('user_info', JSON.stringify(res.data.data))
+          window.localStorage.setItem('user_info', JSON.stringify(data))
           // Element 提供的提示文本信息组件 这也是组件使用的一种方式  大于等于200或者小于400的状态码都会进入这里
           this.$message({
             message: "登录成功",
@@ -176,8 +176,8 @@ export default {
         url: `/captchas/${
           this.form.mobile
         }`
-      }).then(res => {
-        const data = res.data.data;
+      }).then(data => {
+        // const data = res.data.data;
         window.initGeetest(
           {
             // 以下配置参数来自服务端 SDK
@@ -216,7 +216,7 @@ export default {
                     validate,
                     seccode
                   }
-                }).then(res => {
+                }).then(data => {
                   // 发送短信之后，开始倒计时
                   this.codeCountDown();
                 });
