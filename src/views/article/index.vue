@@ -17,9 +17,8 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="频道">
-          <el-select v-model="filterParams.channel_id" placeholder="请选择">
-            <el-option  v-for="item in channels" :key="item.id" :label="item.name" :value="item.id"></el-option>
-          </el-select>
+          <!-- 自己封装的频道列表组件 可以调过来直接使用-->
+         <article-channel v-model="filterParams.channel_id"></article-channel>
         </el-form-item>
         <el-form-item label="活动时间">
           <el-date-picker
@@ -81,8 +80,12 @@
 </template>
 
 <script>
+import ArticleChannel from '@/components/article-channel'
 export default {
   name: "ArticlesList",
+  components:{
+    ArticleChannel
+  },
   data() {
     return {
       articles: [], // 列表数据
@@ -112,7 +115,6 @@ export default {
           label: "已删除"
         }
       ],
-      channels: [], // 频道列表
       filterParams: {
         // 文章查询条件的参数
         status: "", // 文章状态
@@ -125,7 +127,6 @@ export default {
   },
   created() {
     this.loadArticles();
-    this.loadChannels(); // 加载频道列表
   },
   methods: {
     // 加载文章列表
@@ -154,15 +155,6 @@ export default {
         this.totalPage = data.total_count;
         // this.totalCount = data.total_count;
         this.loading = false;
-      });
-    },
-    // 加载频道列表
-    loadChannels() {
-      this.$http({
-        method: "GET",
-        url: "/channels"
-      }).then(data => {
-        this.channels = data.channels;
       });
     },
     onSubmit() {
