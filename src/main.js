@@ -27,7 +27,8 @@ Vue.config.productionTip = false
 // 也就是说配置了这个东西你就不用每次都写长长的 http://xxx
 // 只需要写 例如 axios({ url: '/'})
 // 路劲中的 ./ 多退少补
-axios.defaults.baseURL = 'http://toutiao.course.itcast.cn/mp/v1_0/'
+axios.defaults.baseURL = 'http://ttapi.research.itcast.cn/mp/v1_0/' // 线上接口地址
+// axios.defaults.baseURL = 'http://toutiao.course.itcast.cn/mp/v1_0/'  // 局域网接口地址
 // 使用JSONbig 处理返回住居中超出js安全整数范围的数字
 // JSONbig自己会分析数据中的哪个数字超出整数范围了
  //  由于后端的数据id超出了js安全正数范围 所以导致正数无法精确表示
@@ -40,7 +41,11 @@ axios.defaults.transformResponse = [function(data) {
   // 那这里JSONbig.parse(空) 空字符串 就报错了
   // data是未经处理的后端响应数据：JSON 字符串
     // data数据可能不是标准的JSON格式字符串，否则会导致JSONbig.parse(data)转换失败报错
+  try {
     return JSONbig.parse(data)
+  } catch (error) {
+    return data
+  }
 }]
 /**
  *   Axios 请求拦截器 所有使用axios发起的请求都要先经过这里

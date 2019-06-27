@@ -64,8 +64,8 @@ export default {
       //   timer:null,
       form: {
         // 表单数据
-        mobile: "",
-        code: "",
+        mobile: "18734800169",
+        code: "246810",
         agree: "" // 是否同意用户协议
       },
       loginLoading: false, // 登录按钮的loading 状态

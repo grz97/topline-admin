@@ -4,45 +4,51 @@
       <div slot="header" class="clearfix">
         <span>筛选条件</span>
       </div>
-      <el-form ref="form" :model="form" label-width="100px">
+      <el-form ref="form"
+       label-width="100px">
         <el-form-item label="状态：">
-          <el-radio-group v-model="form.resource">
+          <el-radio-group v-model="filterParams.status">
+            <el-radio label="" value="">全部</el-radio>
             <el-radio
-            v-for="item in statTypes"
+            v-for="(item, index) in statTypes"
             :key="item.label"
-            :label="item.label">
-            </el-radio>
+            :label="index + ''"
+            >{{item.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="频道">
-          <el-select v-model="form.region" placeholder="请选择">
-            <el-option
-            v-for="item in channels"
-            :key="item.id"
-            :label="item.name"
-            :value="item.id"></el-option>
+          <el-select v-model="filterParams.channel_id" placeholder="请选择">
+            <el-option  v-for="item in channels" :key="item.id" :label="item.name" :value="item.id"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="活动时间">
           <el-date-picker
-            v-model="form.value"
+            value-format="yyyy-MM-dd"
+            v-model="begin_end_pubdate"
+            @change="handleDateChange"
             type="daterange"
             range-separator="至"
             start-placeholder="开始日期"
             end-placeholder="结束日期"
           ></el-date-picker>
         </el-form-item>
+        <el-form-item>
+          <el-button
+          type="primary"
+          :loading="loading"
+          @click="onSubmit">查询</el-button>
+        </el-form-item>
       </el-form>
     </el-card>
     <el-card class="filter-card">
       <div slot="header" class="clearfix">
-        <span>共找到0条符合条件的内容</span>
+        <span>共找到<strong>{{totalPage}}</strong>条符合条件的内容</span>
       </div>
       <el-table :data="articles" v-loading="loading" style="width: 100%">
         <el-table-column label="封面" width="60">
-          <!-- <template slot-scope="scope"> -->
-          <!-- <img width="50" :src="scope.row.cover.images[0]"> -->
-          <!-- </template> -->
+          <template slot-scope="scope">
+            <img width="50" :src="scope.row.cover.images[0]">
+          </template>
         </el-table-column>
         <el-table-column prop="title" label="标题" width="180"></el-table-column>
         <el-table-column prop="pubdate" width="180" label="日期"></el-table-column>
@@ -59,12 +65,16 @@
         </el-table-column>
       </el-table>
     </el-card>
-    <!-- 分页 -->
+    <!-- 分页
+    current-page  当前页码 也就是高亮的页码
+    total 总记录数
+     -->
     <el-pagination
       background
       layout="prev, pager, next"
       @current-change="handleCurrentChages"
       :disabled="loading"
+      :current-page="page"
       :total="totalPage"
     ></el-pagination>
   </div>
@@ -75,22 +85,12 @@ export default {
   name: "ArticlesList",
   data() {
     return {
-      articles: [],
-      form: {
-        name: "",
-        region: "",
-        date1: "",
-        date2: "",
-        delivery: false,
-        type: [],
-        resource: "",
-        desc: "",
-        value: ""
-      },
+      articles: [], // 列表数据
       totalPage: 0,
-      page: 1,
-      loading: false,
-      statTypes: [
+      page: 1, // 当前页码
+      loading: false, // 控制文档加载中的loading效果
+      totalCount:0, // 总数据条数
+      statTypes: [ // 文章状态
         {
           type: "info",
           label: "草稿"
@@ -112,40 +112,62 @@ export default {
           label: "已删除"
         }
       ],
-      channels: [] // 频道列表
+      channels: [], // 频道列表
+      filterParams: {
+        // 文章查询条件的参数
+        status: "", // 文章状态
+        channel_id: "", // 频道id
+        begin_pubdate: "", // 开始时间
+        end_pubdate: "" // 结束时间
+      },
+      begin_end_pubdate: [] // 存储日期选择器同步的开始时间和结束时间
     };
   },
   created() {
     this.loadArticles();
-    this.loadChannels() // 加载频道列表
+    this.loadChannels(); // 加载频道列表
   },
   methods: {
     // 加载文章列表
     loadArticles(page = 1) {
       this.loading = true;
+      // 过滤出有效的查询条件数据字段
+      const filterData = {}
+      for (let key in this.filterParams) {
+         if (this.filterParams[key]) {
+           filterData[key]=this.filterParams[key]
+         }
+      }
       this.$http({
         method: "GET",
         url: "/articles",
         params: {
-          page,
-          per_page: 10
+          page, // 请求数据的页码，不传默认为1
+          per_page: 10, // 请求每页的数据大小，不传默认为10
+          // 将对象混入当前对象,就是对象拷贝
+          ...filterData
         }
         // 这里用data就表示response.data.data
       }).then(data => {
         console.log(data);
         this.articles = data.results;
         this.totalPage = data.total_count;
+        // this.totalCount = data.total_count;
         this.loading = false;
       });
     },
     // 加载频道列表
     loadChannels() {
       this.$http({
-          method: 'GET',
-          url: '/channels'
+        method: "GET",
+        url: "/channels"
       }).then(data => {
-          this.channels=data.channels
-      })
+        this.channels = data.channels;
+      });
+    },
+    onSubmit() {
+     this.page=1 // 让分页组件的页码回到第一页
+     this.loadArticles() // 加载第一页的数据
     },
     // 点击分页
     handleCurrentChages(page) {
@@ -155,7 +177,7 @@ export default {
       this.loadArticles(page);
     },
     // 删除功能
-    handleDelete(article) {
+    handleDelete(articles) {
       this.$confirm("确认删除吗？", "删除提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
@@ -166,7 +188,7 @@ export default {
           // 发送删除请求
           this.$http({
             method: "DELETE",
-            url: `/articles/${article.id}`
+            url: `/articles/${articles.id}`
           }).then(data => {
             // 提示删除成功
             this.$message({
@@ -184,6 +206,11 @@ export default {
             message: "已取消删除"
           });
         });
+    },
+    // 日期选择组件的改变事件
+    handleDateChange(value) {
+      this.filterParams.begin_pubdate = value[0]
+      this.filterParams.end_pubdate = value[1]
     }
   }
 };
