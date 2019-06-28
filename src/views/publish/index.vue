@@ -3,8 +3,8 @@
     <div slot="header" class="header">
       <span>{{isEdit?'编辑文章':'发布文章'}}</span>
       <div>
-        <el-button type="success" @click="handlePublish(false)">{{isEdit?'更新': '发布'}}</el-button>
-        <el-button type="primary" @click="handlePublish(true)">存入草稿</el-button>
+        <el-button type="success" @click="handlePublish(false)" :loading="this.publishLoading">{{isEdit?'更新': '发布'}}</el-button>
+        <el-button type="primary" @click="handlePublish(true)" :loading="this.publishLoading">存入草稿</el-button>
       </div>
     </div>
     <!--如果是编辑并且加载中  isEdit是封装的判断是否是发布还是编辑的方法 在这里直接使用-->
@@ -69,46 +69,68 @@ export default {
         channel_id: "" // 频道列表
       },
       editorOption: {}, // 富文本编辑器相关选项
-      editLoading:false
+      editLoading: false,
+      publishLoading:false
     };
   },
   computed: {
     editor() {
       return this.$refs.myQuillEditor.quill;
     }, // 把判断是否是编辑还是属性封装到一个方法中 然后可以直接使用
-    isEdit() { // 使用计算属性 多次使用只调一次
-      return this.$route.name === 'publish-edit'
+    isEdit() {
+      // 使用计算属性 多次使用只调一次
+      return this.$route.name === "publish-edit";
+    },
+    articleId() { // 使用计算属性
+      return this.$route.params.id
     }
   },
   created() {
-   // 判断是发布还是编辑 如果是编辑就发布请求编辑 route不是router
-   if (this.isEdit) {
-     this.loadArticle()
-   }
+    // 判断是发布还是编辑 如果是编辑就发布请求编辑 route不是router
+    if (this.isEdit) {
+      this.loadArticle();
+    }
   },
   mounted() {
     console.log("this is current quill instance object", this.editor);
   },
   methods: {
     loadArticle() {
-       this.editLoading = true
-       // 发请求 拿数据
-       this.$http({
-         method:'GET',
-         url:`/articles/${this.$route.params.id}`
-       }).then(data => {
-         console.log(data)
-         // 点击的当前修改的内容
-         this.articleForm=data;
-         this.editLoading = false
-       }).catch(err => {
-         console.log(err)
-         this.$message.error('加载文章详情失败')
-       })
+      this.editLoading = true;
+      // 发请求 拿数据
+      this.$http({
+        method: "GET",
+        url: `/articles/${this.articleId}`
+      })
+        .then(data => {
+          console.log(data);
+          // 点击的当前修改的内容
+          this.articleForm = data;
+          this.editLoading = false;
+        })
+        .catch(err => {
+          console.log(err);
+          this.$message.error("加载文章详情失败");
+        });
     },
     // 添加文章
     handlePublish(draft = false) {
-      this.$http({
+      this.publishLoading=true
+      if (this.isEdit) {
+        // 如果是编辑就执行编辑操作
+        this.submitEdit(draft).then(() => {
+          this.publishLoading=false
+        })
+      } else {
+        // 如果是添加就执行添加操作
+        this.submitAdd(draft).then(() => {
+          this.publishLoading=false
+        })
+      }
+    },
+    // 添加文章
+    submitAdd(draft) {
+     return this.$http({
         method: "POST",
         url: "/articles",
         data: this.articleForm,
@@ -126,6 +148,28 @@ export default {
         .catch(err => {
           console.log(err);
           this.$message.error("发布失败");
+        });
+    },
+    // 编辑文章
+    submitEdit(draft) {
+      return this.$http({
+        method: "PUT",
+        url: `/articles/${this.articleId}`,
+        data: this.articleForm,
+        // 存入草稿参数
+        params: {
+          draft
+        }
+      })
+        .then(data => {
+          this.$message({
+            type: "success",
+            message: "修改成功"
+          });
+        })
+        .catch(err => {
+          console.log(err);
+          this.$message.error("修改失败");
         });
     }
   }
