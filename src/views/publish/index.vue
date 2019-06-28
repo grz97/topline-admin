@@ -1,14 +1,14 @@
 <template>
   <el-card class="publish-card">
     <div slot="header" class="header">
-      <span>发布文章</span>
+      <span>{{isEdit?'编辑文章':'发布文章'}}</span>
       <div>
-        <el-button type="success" @click="handlePublish(false)">发布</el-button>
+        <el-button type="success" @click="handlePublish(false)">{{isEdit?'更新': '发布'}}</el-button>
         <el-button type="primary" @click="handlePublish(true)">存入草稿</el-button>
       </div>
     </div>
-    <!--如果是编辑并且加载中 -->
-    <el-form v-loading="$route.name === 'publish-edit' && editLoading">
+    <!--如果是编辑并且加载中  isEdit是封装的判断是否是发布还是编辑的方法 在这里直接使用-->
+    <el-form v-loading="this.isEdit && editLoading">
       <el-form-item>
         <el-input type="text" v-model="articleForm.title" placeholder="标题"></el-input>
       </el-form-item>
@@ -75,11 +75,14 @@ export default {
   computed: {
     editor() {
       return this.$refs.myQuillEditor.quill;
+    }, // 把判断是否是编辑还是属性封装到一个方法中 然后可以直接使用
+    isEdit() { // 使用计算属性 多次使用只调一次
+      return this.$route.name === 'publish-edit'
     }
   },
   created() {
    // 判断是发布还是编辑 如果是编辑就发布请求编辑 route不是router
-   if (this.$route.name === 'publish-edit') {
+   if (this.isEdit) {
      this.loadArticle()
    }
   },
@@ -94,7 +97,7 @@ export default {
          method:'GET',
          url:`/articles/${this.$route.params.id}`
        }).then(data => {
-        //  console.log(data)
+         console.log(data)
          // 点击的当前修改的内容
          this.articleForm=data;
          this.editLoading = false
