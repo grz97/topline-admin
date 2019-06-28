@@ -24,6 +24,11 @@ const router = new Router({
       component: () => import('@/views/layout'),
       children: [ // 所有 children子路由都显示到父路由的router-view中
         {
+          name: 'article-comment', // 评论组件
+          path: '/comment',
+          component: () => import('@/views/comment')
+        },
+        {
           name: 'home',
           path: '', // 它就是layout 的默认子路由
           component: () => import('@/views/home')
