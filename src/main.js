@@ -7,7 +7,7 @@ import 'element-ui/lib/theme-chalk/index.css'
 import axios from 'axios'
 // 处理js大数字
 import JSONbig from 'json-bigint'
-
+import store from './store'
 // 优先查找文件，如果文件找不到则找目录
 // 找到目录，优先加载目录中的index.js
 import './styles/index.less'
@@ -92,5 +92,6 @@ axios.interceptors.response.use(response => { // >= 200或者 < 400 的状态码
 
 new Vue({
   router,
+  store,
   render: h => h(App)
 }).$mount('#app')
