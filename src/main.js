@@ -28,7 +28,7 @@ Vue.config.productionTip = false
 // 只需要写 例如 axios({ url: '/'})
 // 路劲中的 ./ 多退少补
 axios.defaults.baseURL = 'http://ttapi.research.itcast.cn/mp/v1_0/' // 线上接口地址
-// axios.defaults.baseURL = 'http://toutiao.course.itcast.cn/mp/v1_0/'  // 局域网接口地址
+// axios.defaults.baseURL = 'http://toutiao.course.itcast.cn/mp/v1_0/' // 局域网接口地址
 // 使用JSONbig 处理返回住居中超出js安全整数范围的数字
 // JSONbig自己会分析数据中的哪个数字超出整数范围了
  //  由于后端的数据id超出了js安全正数范围 所以导致正数无法精确表示
