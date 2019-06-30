@@ -8,10 +8,26 @@
         <el-radio-button label="全部" @click.native="loadImages(false)"></el-radio-button>
         <el-radio-button label="收藏" @click.native="loadImages(true)"></el-radio-button>
       </el-radio-group>
-      <el-button type="primary">上传图片</el-button>
+      <!-- <el-button type="primary">上传图片</el-button> -->
+      <!--
+        on-success 是一个prop参数
+        prop绑定的是一个表达式，它会将表达式的计算结果绑定到这里
+        {{函数}}
+        {{函数}}
+        v-bind中的语法和{{}}中的一致
+      -->
+        <el-upload
+        action="http://ttapi.research.itcast.cn/mp/v1_0/user/images"
+        :headers="{ Authorization: `Bearer ${$store.state.user.token}` }"
+        name="image"
+        v-bind:on-success="handleUploadSuccess"
+        :show-file-list="false"
+      >
+        <el-button size="small" type="primary">点击上传</el-button>
+      </el-upload>
     </div>
     <el-row :gutter="20">
-      <el-col :span="7" v-for="item in images" :key="item.id">
+      <el-col :span="5" v-for="item in images" :key="item.id">
         <el-card :body-style="{ padding: '0px' }">
           <img :src="item.url" class="image" style="max-width: 100%;">
           <!-- <div style="padding: 10px; display: flex; justify-content: center;"> -->
@@ -42,6 +58,10 @@ export default {
     this.loadImages();
   },
   methods: {
+    // 当上传组件上传文件成功的时候会调用
+    handleUploadSuccess() {
+      this.loadImages(false)
+    },
     async loadImages(collect = false) {
       this.$http({
         method: "GET",
