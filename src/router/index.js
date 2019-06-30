@@ -52,6 +52,11 @@ const router = new Router({
           name: 'account-setting', // 账户设置
           path: '/account',
           component: () => import('@/views/account')
+        },
+        {
+          name: 'image', // 素材管理
+          path: '/image',
+          component: () => import('@/views/image')
         }
       ]
     }
